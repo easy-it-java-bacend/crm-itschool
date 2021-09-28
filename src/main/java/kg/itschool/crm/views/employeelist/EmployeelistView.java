@@ -1,0 +1,211 @@
+package kg.itschool.crm.views.employeelist;
+
+import java.util.Optional;
+
+import kg.itschool.crm.data.entity.Employee;
+import kg.itschool.crm.data.service.EmployeeService;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasStyle;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.data.binder.BeanValidationBinder;
+import com.vaadin.flow.data.binder.ValidationException;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.PageTitle;
+import kg.itschool.crm.views.MainLayout;
+import javax.annotation.security.RolesAllowed;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.data.converter.StringToIntegerConverter;
+import com.vaadin.flow.component.textfield.TextField;
+
+@PageTitle("Employee list")
+@Route(value = "employee-list/:employeeID?/:action?(edit)", layout = MainLayout.class)
+@RolesAllowed("admin")
+public class EmployeelistView extends Div implements BeforeEnterObserver {
+
+    private final String EMPLOYEE_ID = "employeeID";
+    private final String EMPLOYEE_EDIT_ROUTE_TEMPLATE = "employee-list/%d/edit";
+
+    private Grid<Employee> grid = new Grid<>(Employee.class, false);
+
+    private TextField firstName;
+    private TextField lastName;
+    private TextField email;
+    private TextField phone;
+    private DatePicker dateOfBirth;
+    private TextField position;
+    private TextField salary;
+
+    private Button cancel = new Button("Cancel");
+    private Button save = new Button("Save");
+
+    private BeanValidationBinder<Employee> binder;
+
+    private Employee employee;
+
+    private EmployeeService employeeService;
+
+    public EmployeelistView(@Autowired EmployeeService employeeService) {
+        this.employeeService = employeeService;
+        addClassNames("employeelist-view", "flex", "flex-col", "h-full");
+
+        // Create UI
+        SplitLayout splitLayout = new SplitLayout();
+        splitLayout.setSizeFull();
+
+        createGridLayout(splitLayout);
+        createEditorLayout(splitLayout);
+
+        add(splitLayout);
+
+        // Configure Grid
+        grid.addColumn("firstName").setAutoWidth(true);
+        grid.addColumn("lastName").setAutoWidth(true);
+        grid.addColumn("email").setAutoWidth(true);
+        grid.addColumn("phone").setAutoWidth(true);
+        grid.addColumn("dateOfBirth").setAutoWidth(true);
+        grid.addColumn("position").setAutoWidth(true);
+        grid.addColumn("salary").setAutoWidth(true);
+        grid.setItems(query -> employeeService.list(
+                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
+                .stream());
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+        grid.setHeightFull();
+
+        // when a row is selected or deselected, populate form
+        grid.asSingleSelect().addValueChangeListener(event -> {
+            if (event.getValue() != null) {
+                UI.getCurrent().navigate(String.format(EMPLOYEE_EDIT_ROUTE_TEMPLATE, event.getValue().getId()));
+            } else {
+                clearForm();
+                UI.getCurrent().navigate(EmployeelistView.class);
+            }
+        });
+
+        // Configure Form
+        binder = new BeanValidationBinder<>(Employee.class);
+
+        // Bind fields. This where you'd define e.g. validation rules
+        binder.forField(salary).withConverter(new StringToIntegerConverter("Only numbers are allowed")).bind("salary");
+
+        binder.bindInstanceFields(this);
+
+        cancel.addClickListener(e -> {
+            clearForm();
+            refreshGrid();
+        });
+
+        save.addClickListener(e -> {
+            try {
+                if (this.employee == null) {
+                    this.employee = new Employee();
+                }
+                binder.writeBean(this.employee);
+
+                employeeService.update(this.employee);
+                clearForm();
+                refreshGrid();
+                Notification.show("Employee details stored.");
+                UI.getCurrent().navigate(EmployeelistView.class);
+            } catch (ValidationException validationException) {
+                Notification.show("An exception happened while trying to store the employee details.");
+            }
+        });
+
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        Optional<Integer> employeeId = event.getRouteParameters().getInteger(EMPLOYEE_ID);
+        if (employeeId.isPresent()) {
+            Optional<Employee> employeeFromBackend = employeeService.get(employeeId.get());
+            if (employeeFromBackend.isPresent()) {
+                populateForm(employeeFromBackend.get());
+            } else {
+                Notification.show(String.format("The requested employee was not found, ID = %d", employeeId.get()),
+                        3000, Notification.Position.BOTTOM_START);
+                // when a row is selected but the data is no longer available,
+                // refresh grid
+                refreshGrid();
+                event.forwardTo(EmployeelistView.class);
+            }
+        }
+    }
+
+    private void createEditorLayout(SplitLayout splitLayout) {
+        Div editorLayoutDiv = new Div();
+        editorLayoutDiv.setClassName("flex flex-col");
+        editorLayoutDiv.setWidth("400px");
+
+        Div editorDiv = new Div();
+        editorDiv.setClassName("p-l flex-grow");
+        editorLayoutDiv.add(editorDiv);
+
+        FormLayout formLayout = new FormLayout();
+        firstName = new TextField("First Name");
+        lastName = new TextField("Last Name");
+        email = new TextField("Email");
+        phone = new TextField("Phone");
+        dateOfBirth = new DatePicker("Date Of Birth");
+        position = new TextField("Position");
+        salary = new TextField("Salary");
+        Component[] fields = new Component[]{firstName, lastName, email, phone, dateOfBirth, position, salary};
+
+        for (Component field : fields) {
+            ((HasStyle) field).addClassName("full-width");
+        }
+        formLayout.add(fields);
+        editorDiv.add(formLayout);
+        createButtonLayout(editorLayoutDiv);
+
+        splitLayout.addToSecondary(editorLayoutDiv);
+    }
+
+    private void createButtonLayout(Div editorLayoutDiv) {
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setClassName("w-full flex-wrap bg-contrast-5 py-s px-l");
+        buttonLayout.setSpacing(true);
+        cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        buttonLayout.add(save, cancel);
+        editorLayoutDiv.add(buttonLayout);
+    }
+
+    private void createGridLayout(SplitLayout splitLayout) {
+        Div wrapper = new Div();
+        wrapper.setId("grid-wrapper");
+        wrapper.setWidthFull();
+        splitLayout.addToPrimary(wrapper);
+        wrapper.add(grid);
+    }
+
+    private void refreshGrid() {
+        grid.select(null);
+        grid.getLazyDataView().refreshAll();
+    }
+
+    private void clearForm() {
+        populateForm(null);
+    }
+
+    private void populateForm(Employee value) {
+        this.employee = value;
+        binder.readBean(this.employee);
+
+    }
+}
