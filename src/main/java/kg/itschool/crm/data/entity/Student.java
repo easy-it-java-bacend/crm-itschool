@@ -6,7 +6,7 @@ import kg.itschool.crm.data.AbstractEntity;
 import java.time.LocalDate;
 
 @Entity
-public class Student extends AbstractEntity {
+public class Student extends BaseEntity {
 
     private Integer studentID;
     private String firstName;

@@ -3,10 +3,13 @@ package kg.itschool.crm.data.entity;
 import javax.persistence.Entity;
 
 import kg.itschool.crm.data.AbstractEntity;
+import lombok.Data;
+
 import java.time.LocalDate;
 
+@Data
 @Entity
-public class Employee extends AbstractEntity {
+public class Employee extends BaseEntity {
 
     private String firstName;
     private String lastName;

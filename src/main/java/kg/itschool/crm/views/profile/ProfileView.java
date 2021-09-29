@@ -1,7 +1,6 @@
 package kg.itschool.crm.views.profile;
 
-import kg.itschool.crm.data.entity.SamplePerson;
-import kg.itschool.crm.data.service.SamplePersonService;
+import kg.itschool.crm.data.entity.Employee;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -18,11 +17,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.PageTitle;
+import kg.itschool.crm.data.service.EmployeeService;
 import kg.itschool.crm.views.MainLayout;
 import javax.annotation.security.PermitAll;
 import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.component.icon.Icon;
 
 @PageTitle("Profile")
@@ -41,9 +39,9 @@ public class ProfileView extends Div {
     private Button cancel = new Button("Cancel");
     private Button save = new Button("Save");
 
-    private Binder<SamplePerson> binder = new Binder(SamplePerson.class);
+    private Binder<Employee> binder = new Binder(Employee.class);
 
-    public ProfileView(SamplePersonService personService) {
+    public ProfileView(EmployeeService employeeService) {
         addClassName("profile-view");
 
         add(createTitle());
@@ -55,14 +53,14 @@ public class ProfileView extends Div {
 
         cancel.addClickListener(e -> clearForm());
         save.addClickListener(e -> {
-            personService.update(binder.getBean());
+            employeeService.update(binder.getBean());
             Notification.show(binder.getBean().getClass().getSimpleName() + " details stored.");
             clearForm();
         });
     }
 
     private void clearForm() {
-        binder.setBean(new SamplePerson());
+        binder.setBean(new Employee());
     }
 
     private Component createTitle() {
