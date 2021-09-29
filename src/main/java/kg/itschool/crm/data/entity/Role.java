@@ -1,4 +1,4 @@
-package kg.itschool.crm.data;
+package kg.itschool.crm.data.entity;
 
 public enum Role {
     USER("user"), ADMIN("admin");

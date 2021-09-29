@@ -5,12 +5,6 @@ import kg.itschool.crm.data.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vaadin.artur.helpers.CrudService;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Set;
-import javax.persistence.ElementCollection;
-import javax.persistence.FetchType;
-import kg.itschool.crm.data.Role;
-import javax.persistence.Lob;
 
 @Service
 public class UserService extends CrudService<User, Integer> {

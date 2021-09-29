@@ -19,6 +19,7 @@ public class Employee extends BaseEntity {
     private String position;
     private Integer salary;
 
+
     public String getFirstName() {
         return firstName;
     }

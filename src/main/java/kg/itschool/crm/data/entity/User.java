@@ -1,56 +1,34 @@
 package kg.itschool.crm.data.entity;
 
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 import kg.itschool.crm.data.AbstractEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.time.LocalDate;
 import java.util.Set;
-import javax.persistence.ElementCollection;
-import javax.persistence.FetchType;
-import kg.itschool.crm.data.Role;
-import javax.persistence.Lob;
 
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
 @Entity
-public class User extends AbstractEntity {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "tb_user")
+@EqualsAndHashCode(callSuper = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@SequenceGenerator(name = "SEQ_ID", sequenceName = "SEQ_USER")
+public class User extends BaseEntity {
 
-    private String username;
-    private String name;
+    String username;
     @JsonIgnore
-    private String hashedPassword;
+    String hashedPassword;
     @ElementCollection(fetch = FetchType.EAGER)
-    private Set<Role> roles;
+    Set<Role> roles;
     @Lob
-    private String profilePictureUrl;
+    String profilePictureUrl;
 
-    public String getUsername() {
-        return username;
-    }
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getHashedPassword() {
-        return hashedPassword;
-    }
-    public void setHashedPassword(String hashedPassword) {
-        this.hashedPassword = hashedPassword;
-    }
-    public Set<Role> getRoles() {
-        return roles;
-    }
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-    public String getProfilePictureUrl() {
-        return profilePictureUrl;
-    }
-    public void setProfilePictureUrl(String profilePictureUrl) {
-        this.profilePictureUrl = profilePictureUrl;
-    }
 
 }

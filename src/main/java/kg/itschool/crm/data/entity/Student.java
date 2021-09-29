@@ -1,83 +1,55 @@
 package kg.itschool.crm.data.entity;
 
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 import kg.itschool.crm.data.AbstractEntity;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDate;
 
+@Data
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "tb_student")
+@EqualsAndHashCode(callSuper = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@SequenceGenerator(name = "SEQ_ID", sequenceName = "SEQ_STUDENT")
 public class Student extends BaseEntity {
 
-    private Integer studentID;
-    private String firstName;
-    private String lastName;
-    private Integer debt;
-    private String status;
-    private String phone;
-    private String group;
-    private String email;
-    private LocalDate dateOfBirth;
-    private String gender;
+    @Column(name = "student_id", nullable = false)
+    Integer studentID;
 
-    public Integer getStudentID() {
-        return studentID;
-    }
-    public void setStudentID(Integer studentID) {
-        this.studentID = studentID;
-    }
-    public String getFirstName() {
-        return firstName;
-    }
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-    public String getLastName() {
-        return lastName;
-    }
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-    public Integer getDebt() {
-        return debt;
-    }
-    public void setDebt(Integer debt) {
-        this.debt = debt;
-    }
-    public String getStatus() {
-        return status;
-    }
-    public void setStatus(String status) {
-        this.status = status;
-    }
-    public String getPhone() {
-        return phone;
-    }
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-    public String getGroup() {
-        return group;
-    }
-    public void setGroup(String group) {
-        this.group = group;
-    }
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
-    }
-    public void setDateOfBirth(LocalDate dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-    public String getGender() {
-        return gender;
-    }
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
+    @Column(name = "first_name", nullable = false)
+    String firstName;
 
+    @Column(name = "last_name", nullable = false)
+    String lastName;
+
+    @Column(name = "debt", nullable = false)
+    Integer debt;
+
+    @Column(name = "status", nullable = false)
+    String status;
+
+    @Column(name = "phone", nullable = false)
+    String phone;
+
+    @Column(name = "group_id", nullable = false)
+    String group;
+
+    @Column(name = "email", nullable = false, unique = true)
+    String email;
+
+    @Column(name = "date_of_birth", nullable = false)
+    LocalDate dateOfBirth;
+
+    @Column(name = "gender", nullable = false)
+    String gender;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id",referencedColumnName = "id")
+    User user;
 }
